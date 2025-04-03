@@ -8,7 +8,7 @@ resource "aws_vpc" "myvpc" {
 resource "aws_subnet" "pub-subnet" {
   vpc_id     = aws_vpc.myvpc.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "eu-west-2a"
+  availability_zone = "ap-south-1a"
 
   tags = {
     Name = "public-subnet"
@@ -19,7 +19,7 @@ resource "aws_subnet" "pub-subnet" {
 resource "aws_subnet" "pvt-subnet" {
   vpc_id     = aws_vpc.myvpc.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = "eu-west-2b"
+  availability_zone = "ap-south-1b"
 
   tags = {
     Name = "private-subnet"
@@ -50,7 +50,7 @@ resource "aws_route_table" "pvt-route" {
 
   route {
     cidr_block = "0.0.0.0/0"
-     gateway_id = aws_nat_gateway.ngw.id
+    # gateway_id = aws_nat_gateway.ngw.id
     #vpc_peering_connection_id = aws_vpc_peering_connection.mypeer.id
   }
   tags = {
@@ -58,7 +58,7 @@ resource "aws_route_table" "pvt-route" {
   }
 }
 #Create Route Table Association For Private
-resource "aws_route_table_association" "prt-route-ass" {
+resource "aws_route_table_association" "pvt-route-ass" {
   subnet_id      = aws_subnet.pvt-subnet.id
   route_table_id = aws_route_table.pvt-route.id
 }
@@ -129,26 +129,26 @@ resource "aws_security_group" "pvt-sg" {
 
 # Ec2 Pub
 resource "aws_instance" "public-ec2" {
-  ami    = "ami-01e479df1702f1d13"
-  instance_type = "t2.small"
+  ami    = "ami-06b6e5225d1db5f46"
+  instance_type = "t2.micro"
   subnet_id     = aws_subnet.pub-subnet.id
   #key_name   = "AjithS3114"
   associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.pub-sg.id]
   tags = {
-    Name = "Public-vgs"
+    Name = "Public-instance"
   }
 }
 
 # EC2 Prvt
 resource "aws_instance" "private-ec2" {
-  ami    = "ami-01e479df1702f1d13"
-  instance_type = "t2.small"
+  ami    = "ami-06b6e5225d1db5f46"
+  instance_type = "t2.micro"
   subnet_id     = aws_subnet.pvt-subnet.id
   #key_name   = "AjithS3114"
   vpc_security_group_ids = [aws_security_group.pvt-sg.id]
   tags = {
-    Name = "Private-vgs"
+    Name = "Private-Instance"
   }
 }
 
@@ -161,18 +161,18 @@ resource "aws_internet_gateway" "igw" {
   }
 }
  # EIP # Must Read Before Delete This
- resource "aws_eip" "myeip" {
-   vpc   =  true
- }
+# resource "aws_eip" "myeip" {
+#   vpc   =  true
+# }
  #Nat Gate Way
- resource "aws_nat_gateway" "ngw" {
-   allocation_id = aws_eip.myeip.id
-   subnet_id     = aws_subnet.pub-subnet.id
+ # resource "aws_nat_gateway" "ngw" {
+ #  allocation_id = aws_eip.myeip.id
+ #  subnet_id     = aws_subnet.pub-subnet.id
   
-   tags = {
-     Name = "natgw"
-   }
- }
+ #  tags = {
+  #   Name = "natgw"
+  # }
+ #}
 
 # Create 2nd VPC For Peering Connection
 # resource "aws_vpc" "peervpc" {
